@@ -6,7 +6,14 @@
     android:layout_height="match_parent" android:id="@+id/container" tools:context=".MainActivity"
     tools:deviceIds="wear">
 
-    <TextView android:id="@+id/text" app:layout_box="all" android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <FrameLayout
+        app:layout_box="all"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView android:id="@+id/text" android:gravity="center" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="@string/app_name" />
+
+    </FrameLayout>
 
 </android.support.wearable.view.BoxInsetLayout>
