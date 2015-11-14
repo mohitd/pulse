@@ -33,7 +33,9 @@ var server = net.createServer(function(sock) {
             req = JSON.parse(data);
         } catch (e) {
             console.log(e);
-            return;
+            sock.write(e);
+            sock.end();
+        return;
         }
 
         if(req.requestType === "send"){
@@ -46,8 +48,9 @@ var server = net.createServer(function(sock) {
         else{
             sock.write("Invalid command");
         }
-
+        
         sock.end();
+      
     });
     
     // Add a 'close' event handler to this instance of socket
@@ -68,4 +71,3 @@ server.on('error', function (e) {
 });
 
 console.log('Server listening on ' + HOST +':'+ PORT);
-
