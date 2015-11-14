@@ -6,11 +6,26 @@ import android.hardware.SensorEventListener2;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.wearable.activity.WearableActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-public class MainActivity extends WearableActivity implements SensorEventListener2, View.OnClickListener {
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
+
+import java.util.ArrayList;
+
+public class MainActivity extends WearableActivity implements SensorEventListener2, View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+    private static final String TAG = "Wear." + MainActivity.class.getCanonicalName();
+    private static final String PATH = "/hr-data";
 
     private TextView textView;
     private ImageButton imageButtonClear;
@@ -21,12 +36,18 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private double hr;
 
+    private GoogleApiClient apiClient;
+
+    private ArrayList<Double> heartRates;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         setAmbientEnabled();
+
+        heartRates = new ArrayList<>();
 
         textView = (TextView) findViewById(R.id.text);
         imageButtonClear = (ImageButton) findViewById(R.id.image_button_clear);
@@ -37,6 +58,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
+
+        apiClient = new GoogleApiClient.Builder(this, this, this).addApi(Wearable.API).build();
+        apiClient.connect();
     }
 
     @Override
@@ -103,6 +127,34 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         if (sensorManager != null) {
             sensorManager.unregisterListener(this);
         }
+        apiClient.disconnect();
         super.onDestroy();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.i(TAG, "Connected!");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.w(TAG, "Suspended...");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.e(TAG, "Connection Failed!");
+    }
+
+    private void sendData() {
+        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(PATH);
+        PutDataRequest putDataRequest = putDataMapRequest.asPutDataRequest();
+        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(apiClient, putDataRequest);
+        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+            @Override
+            public void onResult(DataApi.DataItemResult dataItemResult) {
+                if (dataItemResult.getStatus().isSuccess()) Log.i(TAG, "SUCCESS!");
+            }
+        });
     }
 }
