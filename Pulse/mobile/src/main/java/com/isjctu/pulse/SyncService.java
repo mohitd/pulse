@@ -124,6 +124,8 @@ public class SyncService extends Service {
             timeAL.add(obj);
         }
 
+        //call method in main activity to populate arraylists
+
         HeartBeat curr;
         for(int i = 0; i < size; i++) {
             //curr = new HeartBeat(rateAL.get(i), timeAL.get(i), accAL.get(i));
