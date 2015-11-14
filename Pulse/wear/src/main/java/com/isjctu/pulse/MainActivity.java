@@ -27,6 +27,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private static final String TAG = "Wear." + MainActivity.class.getCanonicalName();
     private static final String PATH = "/hr-data";
 
+    private static final String KEY_TIMESTAMP = "com.isjctu.pulse.data.timestamp";
+    private static final String KEY_HEART_RATE = "com.isjctu.pulse.data.heart_rate";
+    private static final String KEY_ACCURACY = "com.isjctu.pulse.data.accuracy";
+    private static final int MAX_SIZE = 100;
+
     private TextView textView;
     private ImageButton imageButtonClear;
     private ImageButton imageButtonOk;
@@ -38,7 +43,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private GoogleApiClient apiClient;
 
-    private ArrayList<Double> heartRates;
+    private ArrayList<Float> heartRates;
+    private ArrayList<Long> timeStamps;
+    private ArrayList<Integer> accuracies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +55,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         setAmbientEnabled();
 
         heartRates = new ArrayList<>();
+        timeStamps = new ArrayList<>();
+        accuracies = new ArrayList<>();
 
         textView = (TextView) findViewById(R.id.text);
         imageButtonClear = (ImageButton) findViewById(R.id.image_button_clear);
@@ -101,10 +110,18 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         } else if (sensorEvent.sensor.getType() == Sensor.TYPE_HEART_RATE && sensorEvent.values[0] != 0) {
             hr = sensorEvent.values[0];
         }
+
+        if (heartRates.size() > MAX_SIZE) {
+            sendData();
+        } else if (sensorEvent.sensor.getType() == Sensor.TYPE_HEART_RATE && sensorEvent.values[0] != 0) {
+            timeStamps.add(System.currentTimeMillis());
+            heartRates.add(sensorEvent.values[0]);
+            accuracies.add(sensorEvent.accuracy);
+        }
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
 
@@ -148,6 +165,21 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void sendData() {
         PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(PATH);
+
+        long[] timeStampArray = new long[timeStamps.size()];
+        for (int i = 0; i < timeStampArray.length; i++) {
+            timeStampArray[i] = timeStamps.get(i);
+        }
+
+        float[] heartRateArray = new float[heartRates.size()];
+        for (int i = 0; i < heartRateArray.length; i++) {
+            heartRateArray[i] = heartRates.get(i);
+        }
+
+        putDataMapRequest.getDataMap().putLongArray(KEY_TIMESTAMP, timeStampArray);
+        putDataMapRequest.getDataMap().putFloatArray(KEY_HEART_RATE, heartRateArray);
+        putDataMapRequest.getDataMap().putIntegerArrayList(KEY_ACCURACY, accuracies);
+
         PutDataRequest putDataRequest = putDataMapRequest.asPutDataRequest();
         PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(apiClient, putDataRequest);
         pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
@@ -156,5 +188,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 if (dataItemResult.getStatus().isSuccess()) Log.i(TAG, "SUCCESS!");
             }
         });
+
+        timeStamps.clear();
+        heartRates.clear();
+        accuracies.clear();
     }
 }
