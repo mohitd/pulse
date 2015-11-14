@@ -1,6 +1,5 @@
 package com.isjctu.pulse;
 
-import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener2;
@@ -10,9 +9,6 @@ import android.support.wearable.activity.WearableActivity;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 public class MainActivity extends WearableActivity implements SensorEventListener2, View.OnClickListener {
 
@@ -49,6 +45,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
         imageButtonClear.setVisibility(View.GONE);
         imageButtonOk.setVisibility(View.GONE);
+        textView.setTextSize(32);
         textView.getPaint().setAntiAlias(false);
     }
 
@@ -64,6 +61,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
         imageButtonClear.setVisibility(View.VISIBLE);
         imageButtonOk.setVisibility(View.VISIBLE);
+        textView.setTextSize(22);
         textView.getPaint().setAntiAlias(true);
     }
 
@@ -90,12 +88,21 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void onClick(View view) {
         if (view.getId() == R.id.image_button_clear) {
             if (sensorManager != null) {
-                sensorManager.registerListener(this, hrSensor, SensorManager.SENSOR_DELAY_NORMAL);
-            }
-        } else if (view.getId() == R.id.image_button_ok) {
-            if (sensorManager != null) {
                 sensorManager.unregisterListener(this);
             }
+        } else if (view.getId() == R.id.image_button_ok) {
+            textView.setText("Getting HR...");
+            if (sensorManager != null) {
+                sensorManager.registerListener(this, hrSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
+        super.onDestroy();
     }
 }
