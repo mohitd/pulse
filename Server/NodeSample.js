@@ -19,7 +19,7 @@ var dataSet = [];
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
 // The sock object the callback function receives UNIQUE for each connection
-net.createServer(function(sock) {
+var server = net.createServer(function(sock) {
     // We have a connection - a socket object is assigned to the connection automatically
     console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
     
@@ -46,6 +46,8 @@ net.createServer(function(sock) {
         else{
             sock.write("Invalid command");
         }
+
+        sock.end();
     });
     
     // Add a 'close' event handler to this instance of socket
@@ -54,6 +56,16 @@ net.createServer(function(sock) {
     });
     
 }).listen(PORT, HOST);
+
+server.on('error', function (e) {
+  if (e.code == 'EADDRINUSE') {
+    console.log('Address in use, retrying...');
+    setTimeout(function () {
+      server.close();
+      server.listen(PORT, HOST);
+    }, 1000);
+  }
+});
 
 console.log('Server listening on ' + HOST +':'+ PORT);
 
