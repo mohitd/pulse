@@ -7,13 +7,13 @@ public class HeartBeat {
 
     float rate;
     long time;
-    //String id;
-    int accuracy;
+    double lat;
+    double lon;
 
-    public HeartBeat(float rateIn, long timeIn, int accuracyIn) {
+    public HeartBeat(float rateIn, long timeIn, double latIn, double lonIn) {
         rate = rateIn;
         time = timeIn;
-        //id = idIn;
-        accuracy = accuracyIn;
+        lat = latIn;
+        lon = lonIn;
     }
 }

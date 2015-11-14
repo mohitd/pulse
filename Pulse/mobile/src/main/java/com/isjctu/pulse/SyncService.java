@@ -51,13 +51,35 @@ public class SyncService extends Service {
 
 
 
+
+                int numPoints = params[0].size();
+                float avgRate = 0;
+                double avgTime = 0;
+                double avgLat = 0;
+                double avgLon = 0;
+                for(int i = 0; i < numPoints; i++) {
+                    avgRate+=params[0].get(i).rate;
+                    avgTime+=(double)params[0].get(i).time;
+                    avgLat += params[0].get(i).lat;
+                    avgLon += params[0].get(i).lon;
+                }
+                avgRate/=numPoints;
+                avgTime/=numPoints;
+                avgLat/=numPoints;
+                avgLon/=numPoints;
+
+
+
                 JSONArray jArray = new JSONArray();
                 for(HeartBeat obj : params[0]) {
-                    JSONObject curr = new JSONObject();
-                    curr.put("rate", obj.rate);
-                    curr.put("time", obj.time);
-                    curr.put("accuracy", obj.accuracy);
-                    jArray.put(curr);
+
+                    if(obj.accuracy > 0) {
+                        JSONObject curr = new JSONObject();
+                        curr.put("rate", obj.rate);
+                        curr.put("time", obj.time);
+                        //curr.put("accuracy", obj.accuracy);
+                        jArray.put(curr);
+                    }
                 }
                 JSONObject topObj = new JSONObject();
 
@@ -115,21 +137,35 @@ public class SyncService extends Service {
         long[] timeArr = new long[size]; //something in
         ArrayList<Integer> accAL = new ArrayList<>();
         //String id = ""; //something in
+
+
+        //Instantiate accAL
+        for(int i=0; i<size; i++){
+            accAL.add(i, 0);
+        }
+
+
         ArrayList<Float> rateAL = new ArrayList<>();
-        for(float obj : rateArr) {
-            rateAL.add(obj);
+        for(int i=0; i<size; i++ ){
+            if(accAL.get(i) > 0) { // OR W/E
+                rateAL.add(rateArr[i]);
+            }
         }
         ArrayList<Long> timeAL = new ArrayList<>();
-        for(long obj : timeArr) {
-            timeAL.add(obj);
+        for(int i=0; i<size; i++ ){
+            if(accAL.get(i) > 0) { // OR W/E
+                timeAL.add(timeArr[i]);
+            }
         }
+
+
 
         //call method in main activity to populate arraylists
 
         HeartBeat curr;
         for(int i = 0; i < size; i++) {
-            //curr = new HeartBeat(rateAL.get(i), timeAL.get(i), accAL.get(i));
-            curr = new HeartBeat(0, 0, 0);
+            //curr = new HeartBeat(rateAL.get(i), timeAL.get(i), LONGITUDE, LATITUDE);
+            curr = new HeartBeat(0, 0, 0, 0);
             myList.add(curr);
         }
         PushToServerTask myTask = new PushToServerTask();
