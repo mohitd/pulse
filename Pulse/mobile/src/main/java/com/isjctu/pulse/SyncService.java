@@ -7,6 +7,8 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Console;
@@ -47,17 +49,24 @@ public class SyncService extends Service {
                 InputStream in = mySocket.getInputStream();
                 ByteBuffer myBuffer = ByteBuffer.allocate(10000);
 
-                Map<String, Object> myMap = new HashMap<>();
-                myMap.put("requestType", "Send");
+
+
+                JSONArray jArray = new JSONArray();
                 Map<String, Object> innerMap = new HashMap<>();
                 for(HeartBeat obj : params[0]) {
-                    innerMap.put("rate", obj.rate);
-                    innerMap.put("time", obj.time);
-                    innerMap.put("accuracy", obj.accuracy);
+                    JSONObject curr = new JSONObject();
+                    curr.put("rate", obj.rate);
+                    curr.put("time", obj.time);
+                    curr.put("accuracy", obj.accuracy);
+                    jArray.put(curr);
                 }
-                myMap.put("dataSet", innerMap);
-                JSONObject myJobj = new JSONObject(myMap);
-                myBuffer.put(myJobj.toString().getBytes("utf-8" ));
+                JSONObject topObj = new JSONObject();
+
+                topObj.put("requestType", "Send");
+                topObj.put("dataSet", jArray);
+
+
+                myBuffer.put(topObj.toString().getBytes("utf-8" ));
                 out.write(myBuffer.array());
                 out.flush();
                 Log.e("Success", "made it");
@@ -71,6 +80,8 @@ public class SyncService extends Service {
 
             } catch (IOException e) {
                 Log.e("Error", "Did not connect to server: " + e.getClass().getCanonicalName());
+            } catch (JSONException e) {
+
             }
 
             return 0;
@@ -116,11 +127,12 @@ public class SyncService extends Service {
 
         HeartBeat curr;
         for(int i = 0; i < size; i++) {
-            curr = new HeartBeat(rateAL.get(i), timeAL.get(i), accAL.get(i));
+            //curr = new HeartBeat(rateAL.get(i), timeAL.get(i), accAL.get(i));
+            curr = new HeartBeat(0, 0, 0);
             myList.add(curr);
         }
         PushToServerTask myTask = new PushToServerTask();
-        myTask.execute();
+        myTask.execute(myList);
         return START_NOT_STICKY;
     }
 
