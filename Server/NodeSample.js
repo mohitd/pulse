@@ -1,13 +1,22 @@
-var net = require('net');
+var commandLineArgs = require('command-line-args');
 
-var HOST = 'localhost';
+var net = require('net');
+ 
+var cli = commandLineArgs([
+  { name: 'address', alias: 'a', type: String, defaultOption: 'localhost' },
+])
+
+var options = cli.parse();
+
+console.log(options);
+
+var HOST = options.address;
 var PORT = 6969;
 
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
 // The sock object the callback function receives UNIQUE for each connection
 net.createServer(function(sock) {
-    
     // We have a connection - a socket object is assigned to the connection automatically
     console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
     
@@ -28,3 +37,4 @@ net.createServer(function(sock) {
 }).listen(PORT, HOST);
 
 console.log('Server listening on ' + HOST +':'+ PORT);
+
