@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends WearableActivity implements SensorEventListener2, View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = "Wear." + MainActivity.class.getCanonicalName();
+    private static final String TAG = "Wear." + MainActivity.class.getSimpleName();
     private static final String PATH = "/hr-data";
 
     private static final String KEY_TIMESTAMP = "com.isjctu.pulse.data.timestamp";
