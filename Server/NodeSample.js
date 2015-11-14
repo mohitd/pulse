@@ -13,6 +13,9 @@ console.log(options);
 var HOST = options.address;
 var PORT = 6969;
 
+
+var dataSet = [];
+
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
 // The sock object the callback function receives UNIQUE for each connection
@@ -22,11 +25,27 @@ net.createServer(function(sock) {
     
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
-        
         console.log('DATA ' + sock.remoteAddress + ': ' + data);
-        // Write the data back to the socket, the client will receive it as data from the server
-        sock.write('You said "' + data + '"');
-        
+           
+        var req = {};
+
+        try {
+            req = JSON.parse(data);
+        } catch (e) {
+            console.log(e);
+            return;
+        }
+
+        if(req.requestType === "send"){
+            sock.write("Received chunk.");
+            dataSet = dataSet.concat(req.dataSet);            
+        }
+        else if(req.requestType === "receive"){
+            sock.write(JSON.stringify(dataSet));
+        }
+        else{
+            sock.write("Invalid command");
+        }
     });
     
     // Add a 'close' event handler to this instance of socket
