@@ -52,7 +52,6 @@ public class SyncService extends Service {
 
 
                 JSONArray jArray = new JSONArray();
-                Map<String, Object> innerMap = new HashMap<>();
                 for(HeartBeat obj : params[0]) {
                     JSONObject curr = new JSONObject();
                     curr.put("rate", obj.rate);
