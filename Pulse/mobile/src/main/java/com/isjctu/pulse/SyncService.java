@@ -5,6 +5,9 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.util.Pair;
+
+import org.json.JSONObject;
 
 import java.io.Console;
 import java.io.IOException;
@@ -16,18 +19,21 @@ import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Drew on 11/14/2015.
  */
 public class SyncService extends Service {
 
-    private static class PushToServerTask extends AsyncTask<ArrayList<?>, Void, Integer> {
+    private static class PushToServerTask extends AsyncTask<ArrayList<HeartBeat>, Void, Integer> {
 
         Socket mySocket;
 
         @Override
-        protected Integer doInBackground(ArrayList<?>... params) {
+        protected Integer doInBackground(ArrayList<HeartBeat>... params) {
             try {
 
                 mySocket = new Socket("54.152.69.195", 6969);
@@ -39,8 +45,19 @@ public class SyncService extends Service {
                 Log.e("Connection: ", result);
                 OutputStream out = mySocket.getOutputStream();
                 InputStream in = mySocket.getInputStream();
-                ByteBuffer myBuffer = ByteBuffer.allocate(100);
-                myBuffer.putChar('z');
+                ByteBuffer myBuffer = ByteBuffer.allocate(10000);
+
+                Map<String, Object> myMap = new HashMap<>();
+                myMap.put("requestType", "Send");
+                Map<String, Object> innerMap = new HashMap<>();
+                for(HeartBeat obj : params[0]) {
+                    innerMap.put("rate", obj.rate);
+                    innerMap.put("time", obj.time);
+                    innerMap.put("accuracy", obj.accuracy);
+                }
+                myMap.put("dataSet", innerMap);
+                JSONObject myJobj = new JSONObject(myMap);
+                myBuffer.put(myJobj.toString().getBytes("utf-8" ));
                 out.write(myBuffer.array());
                 out.flush();
                 Log.e("Success", "made it");
@@ -86,12 +103,20 @@ public class SyncService extends Service {
         //Expect 3 arrays and a string
         float[] rateArr = new float[size]; //something in
         long[] timeArr = new long[size]; //something in
+        ArrayList<Integer> accAL = new ArrayList<>();
         //String id = ""; //something in
-        int[] accuracyArr = new int[size]; //something in
+        ArrayList<Float> rateAL = new ArrayList<>();
+        for(float obj : rateArr) {
+            rateAL.add(obj);
+        }
+        ArrayList<Long> timeAL = new ArrayList<>();
+        for(long obj : timeArr) {
+            timeAL.add(obj);
+        }
 
         HeartBeat curr;
         for(int i = 0; i < size; i++) {
-            curr = new HeartBeat(rateArr[i], timeArr[i], accuracyArr[i]);
+            curr = new HeartBeat(rateAL.get(i), timeAL.get(i), accAL.get(i));
             myList.add(curr);
         }
         PushToServerTask myTask = new PushToServerTask();
