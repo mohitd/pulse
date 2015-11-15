@@ -20,13 +20,15 @@ console.log(options);
 
 
 app.get('/getDataPoints', function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    
     var lati = parseFloat(req.query.lat);
     var longi = parseFloat(req.query.lon);
     var radi = parseFloat(req.query.rad);
     
     console.log(lati,longi,radi);
 
-    if(!isNaN(lati) && !isNaN(longi) && !isNaN(radi)){
+    if(!isNaN(lati) && !isNaN(longi) && !isNaN(radi) && radi > 0.0){
         grabPointsInRange(lati,longi,radi,res);
     }
     else{
@@ -105,19 +107,6 @@ function makeServer(){
                         }
 
                     }
-                    else if(req.requestType.toLowerCase() === "receive"){
-                        var lati = parseFloat(req.dataSet.lat);
-                        var longi = parseFloat(req.dataSet.lon);
-                        var radi = parseFloat(req.dataSet.rad);
-                        
-                        if(!isNaN(lati) && !isNaN(longi) && !isNaN(radi)){
-                            grabPointsInRange(lati,longi,radi,sock);
-                        }
-                        else{
-                            console.log("Invalid input");
-                            sock.write("Invalid input")
-                        }
-                    }
                     else{
                         sock.write("Invalid command");
                     }
@@ -172,8 +161,6 @@ function insertHRObject(HRObject){
 function grabPointsInRange(lati,longi,radius,res){
 
     var ss = 'SELECT latitude,longitude,rate FROM HeartRate WHERE SQRT(POW('+lati+'-latitude,2)+POW('+longi+'-longitude,2)) < '+radius;
-
-    console.log(ss);
 
     var qObj = {
                     sql: ss,
