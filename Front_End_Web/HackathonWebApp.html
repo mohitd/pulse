@@ -28,16 +28,18 @@
 	
 var map;
 var heatmap;
-var size =10;
+var size = 0;
 var rates = [];
 var lats = [];
 var lngs = [];
 var infoWindows = [];
 var markers = [];
-var heatMapData = [];	
+var heatMapData = [];
+var data = [];
+var startPos;	
 
 	
-function getData(){
+function getData(func){
 	$.ajax(
 	{
 	type:"GET",
@@ -45,7 +47,10 @@ function getData(){
 	dataType: 'json',
 	crossDomain: true,
 	success: function(result){
-		console.log(result);
+		data = result;
+		size = data.length;
+		func();
+		startPos = {lat: result[0].latitude, lng: result[0].longitude}
     },
 	error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     console.log(errorThrown);
@@ -56,9 +61,9 @@ function getData(){
 	
 
 function popPositions(){
-	for(var i=0; i<size; i++){ 
-	lats.push(40+i/100.);
-    lngs.push(-83.0145 + i/100.);	//          get data
+	for(var i=0; i<data.length; i++){ 
+	lats.push(data[i].latitude);
+    lngs.push(data[i].longitude);
 	}
 }
 
@@ -68,15 +73,14 @@ function clearPositions(){
 }
 
 function popRates(){
-	for(var i=0; i<size; i++){
-	rates.push(80);              //              get unique data
+	for(var i=0; i<data.length; i++){
+	rates.push(data[i].rate);
 	}
 }
 
 function clearRates(){
 	rates = [];
 }
-
 
 
 function popInfoWindows(){
@@ -86,13 +90,12 @@ function popInfoWindows(){
 	
     for(var i=0; i<size; i++){
 	 
-	//                                               get data
 	var contentString = '<div id="content">'+
       '<div id="siteNotice">'+
       '</div>'+
-      '<h1 id="firstHeading" class="firstHeading">Dude</h1>'+
+      '<h1 id="firstHeading" class="firstHeading">Person '+i+'</h1>'+
       '<div id="bodyContent">'+
-      '<p><b>Heartrate:</b>'+rates[i]+'</p>'+
+      '<p><b>Heartrate: </b>'+rates[i]+'</p>'+
       '</div>'+
       '</div>';
 	
@@ -110,6 +113,8 @@ function clearInfoWindows(){
 function popMarkers(){
 	clearPositions();
 	popPositions();
+	clearRates();
+	popRates();
 	clearInfoWindows();
 	popInfoWindows();
 	
@@ -118,7 +123,7 @@ function popMarkers(){
 	for(i=0; i<size; i++){
 		markers.push(new google.maps.Marker({
 		map: map,
-		position: {lat: lats[i], lng: lngs[i]}, //              Give unique position
+		position: {lat: lats[i], lng: lngs[i]},
 		title: 'Person: '+i
 		}));
 	
@@ -139,13 +144,22 @@ function clearMarkers(){
 	for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(null);
     } 
+	markers = [];
 }
 
 function popHeatMapData(){
 	for(var i=0; i<size; i++){
 		var la = lats[i];
 		var ln = lngs[i];
-		heatMapData.push({location: new google.maps.LatLng(la, ln), weight: rates[i]});
+		var w = rates[i];
+	
+		
+		var obj = {
+		location: new google.maps.LatLng(la, ln),
+		weight: w
+		};
+		
+		heatMapData.push(obj);
 	}
 }
 
@@ -153,49 +167,62 @@ function clearHeatMapData(){
 	heatMapData = [];
 }
 
+function popAll(){
+	clearPositions();
+	clearRates();
+	clearInfoWindows();
+	clearHeatMapData();
+	clearMarkers();
+	popPositions();
+	popRates();
+	popInfoWindows();
+	popMarkers();
+	popHeatMapData();
+	
+}
 
+function drawHeatMap(){
+	
+  //heatmap.setMap(null);
+	
+  heatmap = new google.maps.visualization.HeatmapLayer({
+	data: heatMapData
+  });	
+  heatmap.setMap(map);
+}
 
 function initMap() {
 
-  var myPos = {lat: 40.0000, lng: -83.0145};
+	
+	getData(popAll);
+	
+
+   startPos = {lat: 72.23492834234, lng: 48.23948723};
 
   //creates map
   map = new google.maps.Map(document.getElementById('map'), {
-    center: myPos,
-    zoom: 15,
-	//disableDefaultUI: true
+    center: startPos,
+    zoom: 5,
+	disableDefaultUI: true
   });
   
-  popPositions();
-  popHeatMapData();
+  drawHeatMap();
   
-  heatmap = new google.maps.visualization.HeatmapLayer({
-  data: heatMapData
-  //setMap: map
-  });	
-  heatmap.setMap(map);
+  
   
   //detects bound changes
   map.addListener('bounds_changed', function() {
-    //clear markers off map
-	clearMarkers();
-	//clear var markers
-	markers = [];
     // 3 seconds after the bounds change, do
     window.setTimeout(function() {
-      size = 10; //                get data
-	  clearHeatMapData();
-	  popHeatMapData();
-	  popMarkers();
+      getData(popAll);
+	  drawHeatMap();
     }, 3000);
   });
   
   //every 10 seconds auto update
   setInterval(function(){
-  clearMarkers();
-  markers = [];
-  size = 10; //                       get data
-  popMarkers();
+  getData(popAll);
+  drawHeatMap();
   },
   10000             //10 seconds
   );
