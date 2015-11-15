@@ -72,6 +72,7 @@ mysqlCon.connect(function(err) {
                 return;
             }
 
+		setTimeout(pushMock,3000);
             makeServer();
 
         });
@@ -121,15 +122,15 @@ function makeServer(){
 
                     insertHRObject(HRObj);
 
-            insertHRObject({rate:90, lat:39.99291, lon:-83.018521,time:(new Date).getTime(),deviceID:"5432"});
+            //insertHRObject({rate:90, lat:39.99291, lon:-83.018521,time:(new Date).getTime(),deviceID:"5432"});
 
-            insertHRObject({rate:90, lat:39.99499, lon:-83.018655,time:(new Date).getTime(),deviceID:"51432"});
+            //insertHRObject({rate:90, lat:39.99499, lon:-83.018655,time:(new Date).getTime(),deviceID:"51432"});
 
-            insertHRObject({rate:90, lat:39.99425, lon:-83.018172,time:(new Date).getTime(),deviceID:"54312"});
+            //insertHRObject({rate:90, lat:39.99425, lon:-83.018172,time:(new Date).getTime(),deviceID:"54312"});
 
-            insertHRObject({rate:90, lat:39.99125, lon:-83.017856,time:(new Date).getTime(),deviceID:"5431232"});
+            //insertHRObject({rate:90, lat:39.99125, lon:-83.017856,time:(new Date).getTime(),deviceID:"5431232"});
 
-            insertHRObject({rate:90, lat:39.998602, lon:-83.020488,time:(new Date).getTime(),deviceID:"55432"});
+            //insertHRObject({rate:90, lat:39.998602, lon:-83.020488,time:(new Date).getTime(),deviceID:"55432"});
 
                     // try{
                     //     req = JSON.parse(""+data);
@@ -173,6 +174,20 @@ function makeServer(){
             });
 
             console.log('Server listening on ' + HOST +':'+ PORT);
+}
+
+function pushMock(){
+	insertHRObject({rate:90, lat:39.99291, lon:-83.018521,time:(new Date).getTime(),deviceID:"5432"});
+
+            insertHRObject({rate:90, lat:39.99499, lon:-83.018655,time:(new Date).getTime(),deviceID:"51432"});
+
+            insertHRObject({rate:90, lat:39.99425, lon:-83.018172,time:(new Date).getTime(),deviceID:"54312"});
+
+            insertHRObject({rate:90, lat:39.99125, lon:-83.017856,time:(new Date).getTime(),deviceID:"5431232"});
+
+            insertHRObject({rate:90, lat:39.998602, lon:-83.020488,time:(new Date).getTime(),deviceID:"55432"});
+	setTimeout(pushMock,3000);
+
 }
 
 
