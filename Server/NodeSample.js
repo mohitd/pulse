@@ -67,7 +67,7 @@ mysqlCon.connect(function(err) {
             return;
         }
 
-        var createQuery = "CREATE TABLE `HeartRate` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`time` int(11) DEFAULT NULL,`rate` float DEFAULT NULL,`deviceID` varchar(255) DEFAULT NULL,`latitude` double DEFAULT NULL,`longitude` double DEFAULT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;";        mysqlCon.query(createQuery,function(err){
+        var createQuery = "CREATE TABLE `HeartRate` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`time` bigint(255) DEFAULT NULL,`rate` float DEFAULT NULL,`deviceID` varchar(255) DEFAULT NULL,`latitude` double DEFAULT NULL,`longitude` double DEFAULT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;";        mysqlCon.query(createQuery,function(err){
             if (err) {
                 console.error('error with initial create query: ' + err.stack);
                 return;
@@ -192,7 +192,11 @@ function insertHRObject(HRObject){
 
 function grabPointsInRange(lati,longi,radius,res){
 
+	var milliseconds = (new Date).getTime();
+
     var ss = 'SELECT latitude,longitude,rate FROM HeartRate WHERE SQRT(POW('+lati+'-latitude,2)+POW('+longi+'-longitude,2)) < '+radius;
+
+	ss += ' AND ABS(time-'+milliseconds+') < 100000'
 
     var qObj = {
                     sql: ss,
