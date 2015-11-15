@@ -1,5 +1,7 @@
 package com.isjctu.pulse;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.IBinder;
@@ -28,7 +30,9 @@ import java.util.Map;
 /**
  * Created by Drew on 11/14/2015.
  */
-public class SyncService extends Service {
+public class ServerBroadcastReceiver extends BroadcastReceiver {
+
+    public static final String ACTION_PUSH_TO_SERVER = "com.isjctu.pulse.action.PUSH_TO_SERVER";
 
     private static class PushToServerTask extends AsyncTask<ArrayList<HeartBeat>, Void, Integer> {
 
@@ -121,58 +125,53 @@ public class SyncService extends Service {
         }
     }
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equals(ACTION_PUSH_TO_SERVER)) {
+            final int size = 100;
+            ArrayList<HeartBeat> myList = new ArrayList<>();
 
-        final int size = 100;
-        ArrayList<HeartBeat> myList = new ArrayList<>();
-
-        //Get stuff in
-        //Expect 3 arrays and a string
-        float[] rateArr = new float[size]; //something in
-        long[] timeArr = new long[size]; //something in
-        ArrayList<Integer> accAL = new ArrayList<>();
-        //String id = ""; //something in
-
-
-        //Instantiate accAL
-        for(int i=0; i<size; i++){
-            accAL.add(i, 0);
-        }
+            //Get stuff in
+            //Expect 3 arrays and a string
+            float[] rateArr = intent.getFloatArrayExtra(MainActivity.EXTRA_HEART_RATE); //something in
+            long[] timeArr = intent.getLongArrayExtra(MainActivity.EXTRA_TIMESTAMPS); //something in
+            ArrayList<Integer> accAL = intent.getIntegerArrayListExtra(MainActivity.EXTRA_ACCURACY);
+            double lat = intent.getDoubleExtra(MainActivity.EXTRA_LATITUDE, 0);
+            double lon = intent.getDoubleExtra(MainActivity.EXTRA_LONGITUDE, 0);
+            //String id = ""; //something in
 
 
-        ArrayList<Float> rateAL = new ArrayList<>();
-        for(int i=0; i<size; i++ ){
-            if(accAL.get(i) > 0) { // OR W/E
-                rateAL.add(rateArr[i]);
+            //Instantiate accAL
+            for(int i=0; i<size; i++){
+                accAL.add(i, 0);
             }
-        }
-        ArrayList<Long> timeAL = new ArrayList<>();
-        for(int i=0; i<size; i++ ){
-            if(accAL.get(i) > 0) { // OR W/E
-                timeAL.add(timeArr[i]);
+
+
+            ArrayList<Float> rateAL = new ArrayList<>();
+            for(int i=0; i<size; i++ ){
+                if(accAL.get(i) > 0) { // OR W/E
+                    rateAL.add(rateArr[i]);
+                }
             }
+            ArrayList<Long> timeAL = new ArrayList<>();
+            for(int i=0; i<size; i++ ){
+                if(accAL.get(i) > 0) { // OR W/E
+                    timeAL.add(timeArr[i]);
+                }
+            }
+
+
+            //call method in main activity to populate arraylists
+
+            HeartBeat curr;
+            for(int i = 0; i < size; i++) {
+                curr = new HeartBeat(rateAL.get(i), timeAL.get(i), lat, lon);
+                myList.add(curr);
+            }
+            PushToServerTask myTask = new PushToServerTask();
+            myTask.execute(myList);
         }
-
-
-
-        //call method in main activity to populate arraylists
-
-        HeartBeat curr;
-        for(int i = 0; i < size; i++) {
-            //curr = new HeartBeat(rateAL.get(i), timeAL.get(i), LONGITUDE, LATITUDE);
-            curr = new HeartBeat(0, 0, 0, 0);
-            myList.add(curr);
-        }
-        PushToServerTask myTask = new PushToServerTask();
-        myTask.execute(myList);
-        return START_NOT_STICKY;
     }
 
 }
