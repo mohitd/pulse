@@ -67,7 +67,7 @@ function makeServer(){
                     
                     var req = data;
 
-                    if(req.requestType === "send"){
+                    if(req.requestType.toLowerCase() === "send"){
                         sock.write("Received chunk.");
 
 
@@ -77,7 +77,7 @@ function makeServer(){
                         }
 
                     }
-                    else if(req.requestType === "receive"){
+                    else if(req.requestType.toLowerCase() === "receive"){
                         sock.write(JSON.stringify(dataSet));
                     }
                     else{
