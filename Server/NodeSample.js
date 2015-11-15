@@ -2,9 +2,14 @@ var commandLineArgs = require('command-line-args');
 
 var net = require('net');
 
+cors = require('cors')
+
+
 var express = require('express');
 
 var app = express();
+
+app.use(cors());
 
 var mysql      = require('mysql');
  
@@ -21,7 +26,7 @@ console.log(options);
 
 app.get('/getDataPoints', function(req, res) {
     res.setHeader('Content-Type', 'application/json');
-    
+
     var lati = parseFloat(req.query.lat);
     var longi = parseFloat(req.query.lon);
     var radi = parseFloat(req.query.rad);
@@ -61,12 +66,13 @@ mysqlCon.connect(function(err) {
             return;
         }
 
-        var createQuery = "CREATE TABLE `HeartRate` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`time` int(11) DEFAULT NULL,`rate` float DEFAULT NULL,`deviceID` varchar(255) DEFAULT NULL,`latitude` double DEFAULT NULL,`longitude` double DEFAULT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;";        mysqlCon.query(createQuery,function(err){
+        var createQuery = "CREATE TABLE `HeartRate` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`time` bigint(255) DEFAULT NULL,`rate` float DEFAULT NULL,`deviceID` varchar(255) DEFAULT NULL,`latitude` double DEFAULT NULL,`longitude` double DEFAULT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;";        mysqlCon.query(createQuery,function(err){
             if (err) {
                 console.error('error with initial create query: ' + err.stack);
                 return;
             }
 
+		setTimeout(pushMock,3000);
             makeServer();
 
         });
@@ -87,29 +93,66 @@ function makeServer(){
                 sock.on('data', function(data) {
                     console.log('DATA ' + sock.remoteAddress + ': ' + data);
                     
-                    var req = {};
+                    var req = String(data);
 
-                    try{
-                        req = JSON.parse(""+data);
-                    }
-                    catch(e){
-                        sock.write("Failed to parse JSON");
-                        console.log(e);
-                        return;
+                    var rIndex = req.indexOf('rate":')+'rate":'.length;
+                    var rate = parseFloat(req.substring(rIndex,req.indexOf(",",rIndex)));
+
+                    var lIndex = req.indexOf('lat":')+'lat":'.length;
+                    var lat = parseFloat(req.substring(lIndex,req.indexOf(",",lIndex)));
+
+                    var tIndex = req.indexOf('time":')+'time":'.length;
+                    var time = parseFloat(req.substring(tIndex,req.indexOf(",",tIndex)));
+
+                    var loIndex = req.indexOf('lon":')+'lon":'.length;
+                    var lon = parseFloat(req.substring(loIndex,req.indexOf("}",loIndex)));
+
+                    console.log(rate);
+                    console.log(time);
+                    console.log(lat);
+                    console.log(lon);
+
+                    var HRObj = {
+                        rate:rate,
+                        time:time,
+                        lat:lat,
+                        lon:lon,
+            deviceID:"12345"
                     }
 
-                    if(req.requestType.toLowerCase() === "send"){
-                        sock.write("Received chunk.");
+                    insertHRObject(HRObj);
 
-                        for(var i = 0; i < req.dataSet.length; i++){
-                            var HRObject = req.dataSet[i];
-                            insertHRObject(HRObject);
-                        }
+            //insertHRObject({rate:90, lat:39.99291, lon:-83.018521,time:(new Date).getTime(),deviceID:"5432"});
 
-                    }
-                    else{
-                        sock.write("Invalid command");
-                    }
+            //insertHRObject({rate:90, lat:39.99499, lon:-83.018655,time:(new Date).getTime(),deviceID:"51432"});
+
+            //insertHRObject({rate:90, lat:39.99425, lon:-83.018172,time:(new Date).getTime(),deviceID:"54312"});
+
+            //insertHRObject({rate:90, lat:39.99125, lon:-83.017856,time:(new Date).getTime(),deviceID:"5431232"});
+
+            //insertHRObject({rate:90, lat:39.998602, lon:-83.020488,time:(new Date).getTime(),deviceID:"55432"});
+
+                    // try{
+                    //     req = JSON.parse(""+data);
+                    // }
+                    // catch(e){
+                    //     sock.write("Failed to parse JSON");
+                    //     console.log(e);
+                    //     return;
+                    // }
+
+                    // if(req.requestType.toLowerCase() === "send"){
+                    //     sock.write("Received chunk.");
+
+                    //     for(var i = 0; i < req.dataSet.length; i++){
+                    //         var HRObject = req.dataSet[i];
+                    //         insertHRObject(HRObject);
+                    //     }
+
+                    // }
+                    // else{
+                    //     sock.write("Invalid command");
+                    // }
                   
                 });
                 
@@ -133,6 +176,20 @@ function makeServer(){
             console.log('Server listening on ' + HOST +':'+ PORT);
 }
 
+function pushMock(){
+	insertHRObject({rate:90, lat:39.99291, lon:-83.018521,time:(new Date).getTime(),deviceID:"5432"});
+
+            insertHRObject({rate:90, lat:39.99499, lon:-83.018655,time:(new Date).getTime(),deviceID:"51432"});
+
+            insertHRObject({rate:90, lat:39.99425, lon:-83.018172,time:(new Date).getTime(),deviceID:"54312"});
+
+            insertHRObject({rate:90, lat:39.99125, lon:-83.017856,time:(new Date).getTime(),deviceID:"5431232"});
+
+            insertHRObject({rate:90, lat:39.998602, lon:-83.020488,time:(new Date).getTime(),deviceID:"55432"});
+	setTimeout(pushMock,3000);
+
+}
+
 
 function insertHRObject(HRObject){
 
@@ -140,11 +197,12 @@ function insertHRObject(HRObject){
     var lati = HRObject.lat;
     var longi = HRObject.lon;
     var time = HRObject.time;
+    var dID = HRObject.deviceID;
 
     var qObj = {
-                  sql: 'INSERT INTO HeartRate (rate,time,latitude,longitude) VALUES (?,?,?,?)',
+                  sql: 'INSERT INTO HeartRate (rate,time,latitude,longitude,deviceID) VALUES (?,?,?,?,?)',
                   timeout: 40000, // 40s
-                  values: [rate,time,lati,longi]
+                  values: [rate,time,lati,longi,dID]
                 };
 
     mysqlCon.query(qObj,function(err){
@@ -158,9 +216,13 @@ function insertHRObject(HRObject){
 }
 
 
-function grabPointsInRange(lati,longi,radius,res){
+function grabPointsInRange(lati,longi,radius,res,id){
 
-    var ss = 'SELECT latitude,longitude,rate FROM HeartRate WHERE SQRT(POW('+lati+'-latitude,2)+POW('+longi+'-longitude,2)) < '+radius;
+    var milliseconds = (new Date).getTime();
+
+    var ss = 'SELECT MAX(time),latitude,longitude,rate FROM HeartRate WHERE SQRT(POW('+lati+'-latitude,2)+POW('+longi+'-longitude,2)) < '+radius;
+
+    ss += ' AND ABS(time-'+milliseconds+') < 100000 GROUP BY deviceID'
 
     var qObj = {
                     sql: ss,
@@ -177,6 +239,3 @@ function grabPointsInRange(lati,longi,radius,res){
     });
 
 }
-
-
-
