@@ -65,7 +65,17 @@ function makeServer(){
                 sock.on('data', function(data) {
                     console.log('DATA ' + sock.remoteAddress + ': ' + data);
                     
-                    var req = data;
+                    var req = {};
+
+                    try{
+                        req = JSON.parse(""+data);
+                    }
+                    catch(e){
+                        return;
+                    }
+
+
+
 
                     if(req.requestType.toLowerCase() === "send"){
                         sock.write("Received chunk.");
@@ -107,11 +117,10 @@ function makeServer(){
 }
 
 function insertHRObject(HRObject){
-    console.log(HRObject);
 
     var rate = HRObject.rate;
-    var lati = HRObject.latitude;
-    var longi = HRObject.longitude;
+    var lati = HRObject.lat;
+    var longi = HRObject.lon;
     var time = HRObject.time;
 
     var qObj = {
@@ -120,12 +129,12 @@ function insertHRObject(HRObject){
                   values: [rate,time,lati,longi]
                 };
 
-    mysqlCon.query(sql,function(err){
+    mysqlCon.query(qObj,function(err){
         if (err) {
             console.error('error with inserton: ' + err.stack);
             return;
         }
-        console.log("Inserted.");
+       
     });
 
 }
