@@ -38,7 +38,7 @@ public class SyncService extends Service {
         protected Integer doInBackground(ArrayList<HeartBeat>... params) {
             try {
 
-                mySocket = new Socket("54.152.69.195", 6960);
+                mySocket = new Socket("54.152.69.195", 6969);
                 Log.e("Created Socket", "");
                 String result = "false";
                 if(mySocket.isConnected()) {
