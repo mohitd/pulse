@@ -2,9 +2,15 @@ var commandLineArgs = require('command-line-args');
 
 var net = require('net');
 
+cors = require('cors')
+
+
+
 var express = require('express');
 
 var app = express();
+
+app.use(cors());
 
 var mysql      = require('mysql');
  
@@ -21,7 +27,7 @@ console.log(options);
 
 app.get('/getDataPoints', function(req, res) {
     res.setHeader('Content-Type', 'application/json');
-    
+
     var lati = parseFloat(req.query.lat);
     var longi = parseFloat(req.query.lon);
     var radi = parseFloat(req.query.rad);
