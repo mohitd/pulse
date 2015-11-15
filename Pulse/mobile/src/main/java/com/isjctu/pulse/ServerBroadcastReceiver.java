@@ -8,6 +8,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -53,14 +54,13 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                 Log.e("Connection: ", result);
                 OutputStream out = mySocket.getOutputStream();
                 InputStream in = mySocket.getInputStream();
-                ByteBuffer myBuffer = ByteBuffer.allocate(100);
 
 
 
 
                 int numPoints = params[0].size();
                 float avgRate = 0;
-                double avgTime = 0;
+                long avgTime = 0;
                 double avgLat = 0;
                 double avgLon = 0;
                 for(int i = 0; i < numPoints; i++) {
@@ -71,8 +71,11 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                 }
                 avgRate/=numPoints;
                 avgTime/=numPoints;
+                
                 avgLat/=numPoints;
                 avgLon/=numPoints;
+
+
 
 
 
@@ -95,17 +98,23 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
 
                 Log.e("JSON: ", topObj.toString());
 
+                ByteBuffer myBuffer = ByteBuffer.allocate(topObj.toString().length()+1);
+
+//                myBuffer.putDouble(avgRate);
+//                myBuffer.putChar()
+
                 myBuffer.put(topObj.toString().getBytes("utf-8"));
                 out.write(myBuffer.array());
                 out.flush();
                 Log.e("Success", "made it");
-                byte[] feedback = new byte[100];
-                in.read(feedback);
-                ByteBuffer inBuffer = ByteBuffer.allocate(100);
-                inBuffer.put(feedback);
-                Log.e("Feedback: ", new String(inBuffer.array()));
+//                byte[] feedback = new byte[100];
+//                in.read(feedback);
+//                ByteBuffer inBuffer = ByteBuffer.allocate(100);
+//                inBuffer.put(feedback);
+//                Log.e("Feedback: ", new String(inBuffer.array()));
                 out.close();
                 in.close();
+
 
             } catch (IOException e) {
                 Log.e("Error", "Did not connect to server: " + e.getClass().getCanonicalName());
@@ -141,13 +150,12 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
             ArrayList<Integer> accAL = intent.getIntegerArrayListExtra(MainActivity.EXTRA_ACCURACY);
             double lat = intent.getDoubleExtra(MainActivity.EXTRA_LATITUDE, 0);
             double lon = intent.getDoubleExtra(MainActivity.EXTRA_LONGITUDE, 0);
-            //String id = ""; //something in
 
 
             //Instantiate accAL
-            for(int i=0; i<size; i++){
-                accAL.add(i, 0);
-            }
+//            for(int i=0; i<size; i++){
+//                accAL.add(i, 0);
+//            }
 
 
             ArrayList<Float> rateAL = new ArrayList<>();

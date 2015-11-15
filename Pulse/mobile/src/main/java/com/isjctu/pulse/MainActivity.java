@@ -11,6 +11,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -146,7 +147,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     intent.putExtra(EXTRA_LATITUDE, currentLocation.getLatitude());
                     intent.putExtra(EXTRA_LONGITUDE, currentLocation.getLongitude());
                     sendBroadcast(intent);
-            }
+
+//                    setContentView(R.layout.activity_main);
+//                    TextView textView = (TextView) findViewById(R.id.rate);
+//
+////                    double sum = 0;
+////                    for(float rate : heartRates){
+////                        sum += rate;
+////                    }
+////                    textView.setText((int)sum / heartRates.length);
+
+                }
             }
         }
     }
