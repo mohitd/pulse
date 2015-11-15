@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Simple Map</title>
+    <title>Heatmaps</title>
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
     <style>
@@ -14,31 +14,62 @@
         height: 100%;
       }
     </style>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   </head>
   <body>
     <div id="map"></div>
     <script>
 
+	
+	
+	
+	
+	
+	
 var map;
-var size = 10;
-var markers = [];
-var infoWindows = [];
-var positions = [];
+var heatmap;
+var size =10;
 var rates = [];
+var lats = [];
+var lngs = [];
+var infoWindows = [];
+var markers = [];
+var heatMapData = [];	
+
+	
+function getData(){
+	$.ajax(
+	{
+	type:"GET",
+	url: 'http://54.152.69.195:3000/getDataPoints?lat=-30.5464&lon=-30.2345&rad=300',
+	dataType: 'json',
+	crossDomain: true,
+	success: function(result){
+		console.log(result);
+    },
+	error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                    console.log(errorThrown);
+                } 
+	
+	});
+}	
+	
 
 function popPositions(){
-	for(int i=0; i<size; i++){ 
-	positions.push({lat: 0, lng: 0});  //          get data
+	for(var i=0; i<size; i++){ 
+	lats.push(40+i/100.);
+    lngs.push(-83.0145 + i/100.);	//          get data
 	}
 }
 
 function clearPositions(){
-	positions = [];
+	lats = [];
+	lngs = [];
 }
 
 function popRates(){
-	for(int i=0; i<size; i++){
-	rates.push(0);              //              get unique data
+	for(var i=0; i<size; i++){
+	rates.push(80);              //              get unique data
 	}
 }
 
@@ -53,27 +84,24 @@ function popInfoWindows(){
 	clearRates();
 	popRates();
 	
-    for(int i=0; i<size; i++){
+    for(var i=0; i<size; i++){
 	 
 	//                                               get data
 	var contentString = '<div id="content">'+
       '<div id="siteNotice">'+
       '</div>'+
-      '<h1 id="firstHeading" class="firstHeading">You</h1>'+
+      '<h1 id="firstHeading" class="firstHeading">Dude</h1>'+
       '<div id="bodyContent">'+
-      '<p><b>YOU ARE HERE</b>, at position HERE.</p>'+
+      '<p><b>Heartrate:</b>'+rates[i]+'</p>'+
       '</div>'+
       '</div>';
 	
 	infoWindows.push(new google.maps.InfoWindow({
 	content:contentString
-	});
+	}));
 	}
   
-  //window displaying info on click of marker
-  var infowindow = new google.maps.InfoWindow({
-    content: contentString
-  });}
+}
   
 function clearInfoWindows(){
 	infoWindows = [];
@@ -85,25 +113,47 @@ function popMarkers(){
 	clearInfoWindows();
 	popInfoWindows();
 	
-	for(var i=0; i<size; i++){
-	markers.push(new google.maps.Marker({
-	map: map,
-	position: positions[i], //              Give unique position
-	title: 'another data pointer'
-	});
+	var j;
 	
-	//listens for click, then displays info
-    markers[i].addListener('click', function() {
-    infoWindows[i].open(map, markers[i]);
-  });
+	for(i=0; i<size; i++){
+		markers.push(new google.maps.Marker({
+		map: map,
+		position: {lat: lats[i], lng: lngs[i]}, //              Give unique position
+		title: 'Person: '+i
+		}));
+	
+		j = i;
+		
+		//WHY DOES THIS WORK?!?!?!?!
+		var frambes = function(i){
+			return function(){
+				infoWindows[i].open(map, markers[i]);
+			}
+		};
+		
+		markers[i].addListener('click', frambes(i));
 	}
 }
 
 function clearMarkers(){
-	for(var marker : markers){
-	markers[i].setMap(null)
+	for (var i = 0; i < markers.length; i++) {
+    markers[i].setMap(null);
+    } 
+}
+
+function popHeatMapData(){
+	for(var i=0; i<size; i++){
+		var la = lats[i];
+		var ln = lngs[i];
+		heatMapData.push({location: new google.maps.LatLng(la, ln), weight: rates[i]});
 	}
 }
+
+function clearHeatMapData(){
+	heatMapData = [];
+}
+
+
 
 function initMap() {
 
@@ -113,8 +163,17 @@ function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
     center: myPos,
     zoom: 15,
-	disableDefaultUI: true
+	//disableDefaultUI: true
   });
+  
+  popPositions();
+  popHeatMapData();
+  
+  heatmap = new google.maps.visualization.HeatmapLayer({
+  data: heatMapData
+  //setMap: map
+  });	
+  heatmap.setMap(map);
   
   //detects bound changes
   map.addListener('bounds_changed', function() {
@@ -124,7 +183,9 @@ function initMap() {
 	markers = [];
     // 3 seconds after the bounds change, do
     window.setTimeout(function() {
-      size = 10; //     Get new size
+      size = 10; //                get data
+	  clearHeatMapData();
+	  popHeatMapData();
 	  popMarkers();
     }, 3000);
   });
@@ -133,17 +194,22 @@ function initMap() {
   setInterval(function(){
   clearMarkers();
   markers = [];
+  size = 10; //                       get data
   popMarkers();
   },
-  5000             //10 seconds
+  10000             //10 seconds
   );
   
 }
 
 
 
+
+
+
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHl3jMhfeATzczDEML6pPV5eniiFNP8kA&callback=initMap"
-        async defer></script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHl3jMhfeATzczDEML6pPV5eniiFNP8kA&signed_in=true&libraries=visualization&callback=initMap">
+    </script>
   </body>
 </html>
