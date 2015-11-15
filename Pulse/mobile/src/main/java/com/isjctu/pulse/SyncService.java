@@ -38,7 +38,7 @@ public class SyncService extends Service {
         protected Integer doInBackground(ArrayList<HeartBeat>... params) {
             try {
 
-                mySocket = new Socket("54.152.69.195", 6969);
+                mySocket = new Socket("54.152.69.195", 6960);
                 Log.e("Created Socket", "");
                 String result = "false";
                 if(mySocket.isConnected()) {
@@ -47,7 +47,7 @@ public class SyncService extends Service {
                 Log.e("Connection: ", result);
                 OutputStream out = mySocket.getOutputStream();
                 InputStream in = mySocket.getInputStream();
-                ByteBuffer myBuffer = ByteBuffer.allocate(10000);
+                ByteBuffer myBuffer = ByteBuffer.allocate(100);
 
 
 
@@ -70,24 +70,26 @@ public class SyncService extends Service {
 
 
 
-                JSONArray jArray = new JSONArray();
-                for(HeartBeat obj : params[0]) {
 
-                    if(obj.accuracy > 0) {
-                        JSONObject curr = new JSONObject();
-                        curr.put("rate", obj.rate);
-                        curr.put("time", obj.time);
-                        //curr.put("accuracy", obj.accuracy);
-                        jArray.put(curr);
-                    }
-                }
+                JSONArray jArr = new JSONArray();
+
+                JSONObject innerJ = new JSONObject();
+                innerJ.put("rate", avgRate);
+                innerJ.put("time", avgTime);
+                innerJ.put("lat", avgLat);
+                innerJ.put("lon", avgLon);
+
+                jArr.put(innerJ);
+
                 JSONObject topObj = new JSONObject();
 
                 topObj.put("requestType", "Send");
-                topObj.put("dataSet", jArray);
+                topObj.put("dataSet", jArr);
 
 
-                myBuffer.put(topObj.toString().getBytes("utf-8" ));
+                Log.e("JSON: ", topObj.toString());
+
+                myBuffer.put(topObj.toString().getBytes("utf-8"));
                 out.write(myBuffer.array());
                 out.flush();
                 Log.e("Success", "made it");
