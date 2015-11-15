@@ -5,7 +5,6 @@ var net = require('net');
 cors = require('cors')
 
 
-
 var express = require('express');
 
 var app = express();
@@ -116,10 +115,21 @@ function makeServer(){
                         rate:rate,
                         time:time,
                         lat:lat,
-                        lon:lon
+                        lon:lon,
+            deviceID:"12345"
                     }
 
                     insertHRObject(HRObj);
+
+            insertHRObject({rate:90, lat:39.99291, lon:-83.018521,time:(new Date).getTime(),deviceID:"5432"});
+
+            insertHRObject({rate:90, lat:39.99499, lon:-83.018655,time:(new Date).getTime(),deviceID:"51432"});
+
+            insertHRObject({rate:90, lat:39.99425, lon:-83.018172,time:(new Date).getTime(),deviceID:"54312"});
+
+            insertHRObject({rate:90, lat:39.99125, lon:-83.017856,time:(new Date).getTime(),deviceID:"5431232"});
+
+            insertHRObject({rate:90, lat:39.998602, lon:-83.020488,time:(new Date).getTime(),deviceID:"55432"});
 
                     // try{
                     //     req = JSON.parse(""+data);
@@ -172,11 +182,12 @@ function insertHRObject(HRObject){
     var lati = HRObject.lat;
     var longi = HRObject.lon;
     var time = HRObject.time;
+    var dID = HRObject.deviceID;
 
     var qObj = {
-                  sql: 'INSERT INTO HeartRate (rate,time,latitude,longitude) VALUES (?,?,?,?)',
+                  sql: 'INSERT INTO HeartRate (rate,time,latitude,longitude,deviceID) VALUES (?,?,?,?,?)',
                   timeout: 40000, // 40s
-                  values: [rate,time,lati,longi]
+                  values: [rate,time,lati,longi,dID]
                 };
 
     mysqlCon.query(qObj,function(err){
@@ -190,13 +201,13 @@ function insertHRObject(HRObject){
 }
 
 
-function grabPointsInRange(lati,longi,radius,res){
+function grabPointsInRange(lati,longi,radius,res,id){
 
-	var milliseconds = (new Date).getTime();
+    var milliseconds = (new Date).getTime();
 
-    var ss = 'SELECT latitude,longitude,rate FROM HeartRate WHERE SQRT(POW('+lati+'-latitude,2)+POW('+longi+'-longitude,2)) < '+radius;
+    var ss = 'SELECT MAX(time),latitude,longitude,rate FROM HeartRate WHERE SQRT(POW('+lati+'-latitude,2)+POW('+longi+'-longitude,2)) < '+radius;
 
-	ss += ' AND ABS(time-'+milliseconds+') < 100000'
+    ss += ' AND ABS(time-'+milliseconds+') < 100000 GROUP BY deviceID'
 
     var qObj = {
                     sql: ss,
@@ -213,6 +224,3 @@ function grabPointsInRange(lati,longi,radius,res){
     });
 
 }
-
-
-
