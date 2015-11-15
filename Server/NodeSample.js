@@ -38,8 +38,7 @@ mysqlCon.connect(function(err) {
             return;
         }
 
-        var createQuery = "CREATE TABLE `HeartRate` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `time` int(11) DEFAULT NULL, `rate` float DEFAULT NULL, `latitude` double DEFAULT NULL, `longitude` double DEFAULT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-        mysqlCon.query(createQuery,function(err){
+        var createQuery = "CREATE TABLE `HeartRate` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`time` int(11) DEFAULT NULL,`rate` float DEFAULT NULL,`deviceID` varchar(255) DEFAULT NULL,`latitude` double DEFAULT NULL,`longitude` double DEFAULT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;";        mysqlCon.query(createQuery,function(err){
             if (err) {
                 console.error('error with initial create query: ' + err.stack);
                 return;
