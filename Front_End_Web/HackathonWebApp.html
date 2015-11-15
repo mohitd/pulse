@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simple Map</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+
+var map;
+var size = 10;
+var markers = [];
+var infoWindows = [];
+var positions = [];
+var rates = [];
+
+function popPositions(){
+	for(int i=0; i<size; i++){ 
+	positions.push({lat: 0, lng: 0});  //          get data
+	}
+}
+
+function clearPositions(){
+	positions = [];
+}
+
+function popRates(){
+	for(int i=0; i<size; i++){
+	rates.push(0);              //              get unique data
+	}
+}
+
+function clearRates(){
+	rates = [];
+}
+
+
+
+function popInfoWindows(){
+    
+	clearRates();
+	popRates();
+	
+    for(int i=0; i<size; i++){
+	 
+	//                                               get data
+	var contentString = '<div id="content">'+
+      '<div id="siteNotice">'+
+      '</div>'+
+      '<h1 id="firstHeading" class="firstHeading">You</h1>'+
+      '<div id="bodyContent">'+
+      '<p><b>YOU ARE HERE</b>, at position HERE.</p>'+
+      '</div>'+
+      '</div>';
+	
+	infoWindows.push(new google.maps.InfoWindow({
+	content:contentString
+	});
+	}
+  
+  //window displaying info on click of marker
+  var infowindow = new google.maps.InfoWindow({
+    content: contentString
+  });}
+  
+function clearInfoWindows(){
+	infoWindows = [];
+}
+  
+function popMarkers(){
+	clearPositions();
+	popPositions();
+	clearInfoWindows();
+	popInfoWindows();
+	
+	for(var i=0; i<size; i++){
+	markers.push(new google.maps.Marker({
+	map: map,
+	position: positions[i], //              Give unique position
+	title: 'another data pointer'
+	});
+	
+	//listens for click, then displays info
+    markers[i].addListener('click', function() {
+    infoWindows[i].open(map, markers[i]);
+  });
+	}
+}
+
+function clearMarkers(){
+	for(var marker : markers){
+	markers[i].setMap(null)
+	}
+}
+
+function initMap() {
+
+  var myPos = {lat: 40.0000, lng: -83.0145};
+
+  //creates map
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: myPos,
+    zoom: 15,
+	disableDefaultUI: true
+  });
+  
+  //detects bound changes
+  map.addListener('bounds_changed', function() {
+    //clear markers off map
+	clearMarkers();
+	//clear var markers
+	markers = [];
+    // 3 seconds after the bounds change, do
+    window.setTimeout(function() {
+      size = 10; //     Get new size
+	  popMarkers();
+    }, 3000);
+  });
+  
+  //every 10 seconds auto update
+  setInterval(function(){
+  clearMarkers();
+  markers = [];
+  popMarkers();
+  },
+  5000             //10 seconds
+  );
+  
+}
+
+
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHl3jMhfeATzczDEML6pPV5eniiFNP8kA&callback=initMap"
+        async defer></script>
+  </body>
+</html>
