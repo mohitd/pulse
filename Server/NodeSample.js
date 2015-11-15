@@ -70,6 +70,7 @@ function makeServer(){
                     if(req.requestType === "send"){
                         sock.write("Received chunk.");
 
+
                         for(var i = 0; i < req.dataSet.length; i++){
                             var HRObject = req.dataSet[i];
                             insertHRObject(HRObject);
@@ -106,6 +107,8 @@ function makeServer(){
 }
 
 function insertHRObject(HRObject){
+    console.log(HRObject);
+
     var rate = HRObject.rate;
     var lati = HRObject.latitude;
     var longi = HRObject.longitude;
@@ -122,6 +125,7 @@ function insertHRObject(HRObject){
             console.error('error with inserton: ' + err.stack);
             return;
         }
+        console.log("Inserted.");
     });
 
 }
