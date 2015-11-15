@@ -112,6 +112,15 @@ function makeServer(){
                     console.log(lat);
                     console.log(lon);
 
+                    var HRObj = {
+                        rate:rate,
+                        time:time,
+                        lat:lat,
+                        lon:lon
+                    }
+
+                    insertHRObject(HRObj);
+
                     // try{
                     //     req = JSON.parse(""+data);
                     // }
