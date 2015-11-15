@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     intent.putExtra(EXTRA_LATITUDE, currentLocation.getLatitude());
                     intent.putExtra(EXTRA_LONGITUDE, currentLocation.getLongitude());
                     sendBroadcast(intent);
-                }
+            }
             }
         }
     }
