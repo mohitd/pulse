@@ -16,6 +16,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
@@ -40,6 +43,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private SensorManager sensorManager;
 
     private double hr;
+
+    private Node node;
 
     private GoogleApiClient apiClient;
 
@@ -151,6 +156,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     public void onConnected(Bundle bundle) {
         Log.i(TAG, "Connected!");
+        Wearable.NodeApi.getConnectedNodes(apiClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
+            @Override
+            public void onResult(NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
+                for (Node aNode : getConnectedNodesResult.getNodes()) {
+                    node = aNode;
+                }
+            }
+        });
     }
 
     @Override
@@ -176,9 +189,18 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             heartRateArray[i] = heartRates.get(i);
         }
 
+        putDataMapRequest.getDataMap().putLong("ts", System.currentTimeMillis());
         putDataMapRequest.getDataMap().putLongArray(KEY_TIMESTAMP, timeStampArray);
         putDataMapRequest.getDataMap().putFloatArray(KEY_HEART_RATE, heartRateArray);
         putDataMapRequest.getDataMap().putIntegerArrayList(KEY_ACCURACY, accuracies);
+
+        byte[] bytes = new byte[] { 1 };
+        Wearable.MessageApi.sendMessage(apiClient, node.getId(), PATH, bytes).setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
+            @Override
+            public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                if (sendMessageResult.getStatus().isSuccess()) Log.i(TAG, "SUCCESS MESSAGE!");
+            }
+        });
 
         PutDataRequest putDataRequest = putDataMapRequest.asPutDataRequest();
         PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(apiClient, putDataRequest);

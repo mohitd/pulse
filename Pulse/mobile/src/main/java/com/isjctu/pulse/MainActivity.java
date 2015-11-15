@@ -24,11 +24,13 @@ import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, DataApi.DataListener {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, DataApi.DataListener, MessageApi.MessageListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -71,12 +73,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(Bundle bundle) {
+        Log.i(TAG, ">>>>onConnected(...)");
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setInterval(10000);
         locationRequest.setFastestInterval(5000);
         locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         LocationServices.FusedLocationApi.requestLocationUpdates(apiClient, locationRequest, this);
+        currentLocation = LocationServices.FusedLocationApi.getLastLocation(apiClient);
+
         Wearable.DataApi.addListener(apiClient, this);
+        Wearable.MessageApi.addListener(apiClient, this);
     }
 
     @Override
@@ -121,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
         Log.i(TAG, ">>>>onDataChanged(...)");
         for (DataEvent event : dataEventBuffer) {
+            Log.i("[[[[MAIN_ACTIVITY]]]]", "List: " + dataEventBuffer.toString());
             if (event.getType() == DataEvent.TYPE_CHANGED) {
                 DataItem item = event.getDataItem();
                 if (item.getUri().getPath().compareTo(PATH) == 0) {
@@ -140,5 +147,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 }
             }
         }
+    }
+
+    @Override
+    public void onMessageReceived(MessageEvent messageEvent) {
+        Log.i(TAG, ">>>>onMessageReceived(...)");
+        byte[] bytes = messageEvent.getData();
+        Log.i(TAG, "" + bytes[0]);
+
+        Toast.makeText(this, "MESSAGE RECEIVED", Toast.LENGTH_SHORT).show();
     }
 }
