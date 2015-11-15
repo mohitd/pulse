@@ -1,10 +1,17 @@
 package com.isjctu.pulse;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -22,6 +29,10 @@ import com.google.android.gms.wearable.Wearable;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, DataApi.DataListener {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    private static final int PERMISSION_REQUEST = 1;
 
     private static final String PATH = "/hr-data";
 
@@ -45,15 +56,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.i(TAG, ">>>>onCreate(Bundle)");
+
         broadcastReceiver = new ServerBroadcastReceiver();
         IntentFilter intentFilter = new IntentFilter(ServerBroadcastReceiver.ACTION_PUSH_TO_SERVER);
         registerReceiver(broadcastReceiver, intentFilter);
 
         apiClient = new GoogleApiClient.Builder(this, this, this).addApi(LocationServices.API).addApi(Wearable.API).build();
-        apiClient.connect();
 
-        Intent myIntent = new Intent(this, ServerBroadcastReceiver.class);
-        this.startService(myIntent);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, PERMISSION_REQUEST);
+        }
     }
 
     @Override
@@ -91,7 +104,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    apiClient.connect();
+                } else {
+                    Toast.makeText(this, "YOU NEED TO LET ME KNOW WHERE YOU ARE!!!", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                break;
+        }
+    }
+
+    @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
+        Log.i(TAG, ">>>>onDataChanged(...)");
         for (DataEvent event : dataEventBuffer) {
             if (event.getType() == DataEvent.TYPE_CHANGED) {
                 DataItem item = event.getDataItem();

@@ -32,6 +32,8 @@ import java.util.Map;
  */
 public class ServerBroadcastReceiver extends BroadcastReceiver {
 
+    private static final String TAG = ServerBroadcastReceiver.class.getSimpleName();
+
     public static final String ACTION_PUSH_TO_SERVER = "com.isjctu.pulse.action.PUSH_TO_SERVER";
 
     private static class PushToServerTask extends AsyncTask<ArrayList<HeartBeat>, Void, Integer> {
@@ -129,6 +131,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(ACTION_PUSH_TO_SERVER)) {
+            Log.i(TAG, ">>>>onReceive(...)");
             final int size = 100;
             ArrayList<HeartBeat> myList = new ArrayList<>();
 
