@@ -17,8 +17,6 @@ console.log(options);
 var HOST = options.address;
 var PORT = 6969;
 
-var dataSet = [];
-
 var mysqlCon = mysql.createConnection({
   host     : 'pulsedata.ckvl8bq6n9hh.us-east-1.rds.amazonaws.com',
   user     : options.mysqlUser,
@@ -53,7 +51,7 @@ mysqlCon.connect(function(err) {
 });
 
 function makeServer(){
-    // Create a server instance, and chain the listen function to it
+            // Create a server instance, and chain the listen function to it
             // The function passed to net.createServer() becomes the event handler for the 'connection' event
             // The sock object the callback function receives UNIQUE for each connection
             var server = net.createServer(function(sock) {
@@ -70,15 +68,13 @@ function makeServer(){
                         req = JSON.parse(""+data);
                     }
                     catch(e){
+                        sock.write("Failed to parse JSON");
+                        console.log(e);
                         return;
                     }
 
-
-
-
                     if(req.requestType.toLowerCase() === "send"){
                         sock.write("Received chunk.");
-
 
                         for(var i = 0; i < req.dataSet.length; i++){
                             var HRObject = req.dataSet[i];
@@ -87,7 +83,17 @@ function makeServer(){
 
                     }
                     else if(req.requestType.toLowerCase() === "receive"){
-                        sock.write(JSON.stringify(dataSet));
+                        var lati = parseFloat(req.dataSet.lat);
+                        var longi = parseFloat(req.dataSet.lon);
+                        var radi = parseFloat(req.dataSet.rad);
+                        
+                        if(!isNaN(lati) && !isNaN(longi) && !isNaN(radi)){
+                            grabPointsInRange(lati,longi,radi,sock);
+                        }
+                        else{
+                            console.log("Invalid input");
+                            sock.write("Invalid input")
+                        }
                     }
                     else{
                         sock.write("Invalid command");
@@ -134,6 +140,30 @@ function insertHRObject(HRObject){
             return;
         }
        
+    });
+
+}
+
+
+function grabPointsInRange(lati,longi,radius,sock){
+
+    var ss = 'SELECT latitude,longitude,rate FROM HeartRate WHERE SQRT(POW('+lati+'-latitude,2)+POW('+longi+'-longitude,2)) < '+radius;
+
+    console.log(ss);
+
+    var qObj = {
+                    sql: ss,
+                    timeout: 40000, // 40s
+                    values: []
+                };
+
+    mysqlCon.query(qObj,function(err,rows){
+        if (err) {
+            console.error('error with inserton: ' + err.stack);
+            return;
+        }
+
+        sock.write(JSON.stringify(rows));
     });
 
 }
