@@ -64,7 +64,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         IntentFilter intentFilter = new IntentFilter(ServerBroadcastReceiver.ACTION_PUSH_TO_SERVER);
         registerReceiver(broadcastReceiver, intentFilter);
 
-        apiClient = new GoogleApiClient.Builder(this, this, this).addApi(LocationServices.API).addApi(Wearable.API).build();
+        apiClient = new GoogleApiClient.Builder(this, this, this).addApiIfAvailable(LocationServices.API).addApiIfAvailable(Wearable.API).build();
+
+        apiClient.connect();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, PERMISSION_REQUEST);
@@ -87,12 +89,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        Log.i(TAG, ">>>>onSuspended(...)");
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
+        Log.i(TAG, ">>>>onConnectionFailed(...)");
     }
 
     @Override
@@ -155,6 +157,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         byte[] bytes = messageEvent.getData();
         Log.i(TAG, "" + bytes[0]);
 
-        Toast.makeText(this, "MESSAGE RECEIVED", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "MESSAGE RECEIVED", Toast.LENGTH_SHORT).show();
     }
 }

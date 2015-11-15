@@ -155,7 +155,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public void onConnected(Bundle bundle) {
-        Log.i(TAG, "Connected!");
+        Log.i(TAG, "C22onnected!");
         Wearable.NodeApi.getConnectedNodes(apiClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
             @Override
             public void onResult(NodeApi.GetConnectedNodesResult getConnectedNodesResult) {

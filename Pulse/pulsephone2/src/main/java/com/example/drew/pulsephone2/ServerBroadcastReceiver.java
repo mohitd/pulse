@@ -1,31 +1,20 @@
-package com.isjctu.pulse;
-import android.app.Service;
+package com.example.drew.pulsephone2;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.util.Log;
-import android.util.Pair;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.Console;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Drew on 11/14/2015.
@@ -132,7 +121,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(ACTION_PUSH_TO_SERVER)) {
             Log.i(TAG, ">>>>onReceive(...)");
-            int size = 100;
+            final int size = 100;
             ArrayList<HeartBeat> myList = new ArrayList<>();
 
             //Get stuff in
@@ -162,8 +151,6 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                     timeAL.add(timeArr[i]);
                 }
             }
-
-            size = timeAL.size();
 
 
             //call method in main activity to populate arraylists
