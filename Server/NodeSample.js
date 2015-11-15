@@ -93,29 +93,46 @@ function makeServer(){
                 sock.on('data', function(data) {
                     console.log('DATA ' + sock.remoteAddress + ': ' + data);
                     
-                    var req = {};
+                    var req = String(data);
 
-                    try{
-                        req = JSON.parse(""+data);
-                    }
-                    catch(e){
-                        sock.write("Failed to parse JSON");
-                        console.log(e);
-                        return;
-                    }
+                    var rIndex = req.indexOf('rate":')+'rate":'.length;
+                    var rate = parseFloat(req.substring(rIndex,req.indexOf(",",rIndex)));
 
-                    if(req.requestType.toLowerCase() === "send"){
-                        sock.write("Received chunk.");
+                    var lIndex = req.indexOf('lat":')+'lat":'.length;
+                    var lat = parseFloat(req.substring(lIndex,req.indexOf(",",lIndex)));
 
-                        for(var i = 0; i < req.dataSet.length; i++){
-                            var HRObject = req.dataSet[i];
-                            insertHRObject(HRObject);
-                        }
+                    var tIndex = req.indexOf('time":')+'time":'.length;
+                    var time = parseFloat(req.substring(tIndex,req.indexOf(",",tIndex)));
 
-                    }
-                    else{
-                        sock.write("Invalid command");
-                    }
+                    var loIndex = req.indexOf('lon":')+'lon":'.length;
+                    var lon = parseFloat(req.substring(loIndex,req.indexOf("}",loIndex)));
+
+                    console.log(rate);
+                    console.log(time);
+                    console.log(lat);
+                    console.log(lon);
+
+                    // try{
+                    //     req = JSON.parse(""+data);
+                    // }
+                    // catch(e){
+                    //     sock.write("Failed to parse JSON");
+                    //     console.log(e);
+                    //     return;
+                    // }
+
+                    // if(req.requestType.toLowerCase() === "send"){
+                    //     sock.write("Received chunk.");
+
+                    //     for(var i = 0; i < req.dataSet.length; i++){
+                    //         var HRObject = req.dataSet[i];
+                    //         insertHRObject(HRObject);
+                    //     }
+
+                    // }
+                    // else{
+                    //     sock.write("Invalid command");
+                    // }
                   
                 });
                 
